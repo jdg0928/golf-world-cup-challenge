@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup Challenge — Newton Comm Monday Men's League</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pitch-dark: #0B3D2E;
+    --pitch-mid: #14532D;
+    --turf: #2D6A4F;
+    --chalk: #F7F7F2;
+    --navy: #142850;
+    --crimson: #C8102E;
+    --gold: #D4AF37;
+    --line: #DAD9D0;
+    --ink: #142016;
+    --muted: #6B7568;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--chalk);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 90px),
+      linear-gradient(180deg, var(--pitch-dark) 0%, var(--pitch-mid) 100%);
+    color: var(--chalk);
+    padding: 56px 24px 40px;
+    overflow: hidden;
+    border-bottom: 6px solid var(--navy);
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    right: -120px;
+    width: 320px;
+    height: 320px;
+    border: 3px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    bottom: -160px;
+    left: -80px;
+    width: 260px;
+    height: 260px;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+
+  .hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 2px;
+    background: var(--gold);
+    display: inline-block;
+  }
+
+  h1 {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(36px, 6vw, 68px);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    margin: 10px 0 6px;
+  }
+
+  .subhead {
+    font-size: 16px;
+    color: rgba(247,247,242,0.75);
+    max-width: 560px;
+    line-height: 1.5;
+  }
+
+  .scoreline {
+    display: flex;
+    gap: 14px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    padding: 8px 14px;
+    border-radius: 3px;
+    color: var(--chalk);
+  }
+
+  .chip b { color: var(--gold); }
+
+  /* ---------- MAIN ---------- */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  .section-title {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    font-size: 22px;
+    letter-spacing: 0.02em;
+    margin: 48px 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--navy);
+  }
+
+  .section-title span.num {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--crimson);
+    font-size: 14px;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    max-width: 640px;
+  }
+
+  /* ---------- INPUT TABLE ---------- */
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: white;
+  }
+
+  table.entry {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 700px;
+    font-size: 13px;
+  }
+
+  table.entry thead tr.hole-row th {
+    background: var(--navy);
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    padding: 10px 6px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+
+  table.entry thead tr.par-row th {
+    background: #1c3a66;
+    color: rgba(255,255,255,0.75);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+    font-size: 11px;
+    padding: 4px 6px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+
+  table.entry thead th.player-head {
+    text-align: left;
+    padding-left: 14px;
+    min-width: 130px;
+    position: sticky;
+    left: 0;
+    background: var(--navy);
+    z-index: 3;
+  }
+
+  table.entry thead tr.par-row th.player-head {
+    background: #1c3a66;
+  }
+
+  table.entry thead th.total-head {
+    min-width: 56px;
+  }
+
+  table.entry thead tr.hole-row th.total-head {
+    background: var(--navy);
+  }
+
+  table.entry tbody td {
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    padding: 6px 4px;
+    text-align: center;
+  }
+
+  table.entry tbody td.player-cell {
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 600;
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    white-space: nowrap;
+  }
+
+  table.entry tbody tr:nth-child(even) td.player-cell,
+  table.entry tbody tr:nth-child(even) td {
+    background-color: #FAFAF7;
+  }
+  table.entry tbody tr:nth-child(even) td.player-cell { background-color: #FAFAF7; }
+
+  .hole-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .hole-inputs input {
+    width: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 3px 2px;
+  }
+
+  .hole-inputs input.strokes { color: var(--muted); }
+  .hole-inputs input.gross { color: var(--ink); font-weight: 700; }
+
+  .hole-inputs input::-webkit-outer-spin-button,
+  .hole-inputs input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .hole-inputs input[type=number] {
+    -moz-appearance: textfield;
+  }
+
+  .point-box {
+    width: 40px;
+    height: 18px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    background: #DAD9D0;
+  }
+
+  .point-box.win { background: #2D9D6F; color: white; }
+  .point-box.draw { background: #D4AF37; color: #3A2E00; }
+  .point-box.loss { background: #E0263F; color: white; }
+  .point-box.pending { background: #E5E3DA; color: #A29C8F; }
+
+  .hole-inputs label {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  td.total-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--crimson);
+    background: #FFF7F5 !important;
+  }
+
+  /* ---------- CONTROLS ---------- */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 12px 22px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.15s ease;
+  }
+
+  button:active { transform: translateY(1px); }
+
+  .btn-primary {
+    background: var(--crimson);
+    color: white;
+    box-shadow: 0 3px 0 #8f0b20;
+  }
+  .btn-primary:hover { background: #d81c37; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--navy);
+    border: 1.5px solid var(--navy);
+  }
+  .btn-secondary:hover { background: rgba(20,40,80,0.06); }
+
+  /* ---------- STANDINGS ---------- */
+  .standings-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: white;
+  }
+
+  table.standings {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 460px;
+    font-size: 14px;
+  }
+
+  table.standings thead th {
+    background: var(--pitch-dark);
+    color: var(--chalk);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 12px 10px;
+    text-align: left;
+  }
+
+  table.standings thead th.center { text-align: center; }
+
+  table.standings thead tr.sub-row th {
+    background: #1c3a66;
+    font-size: 10px;
+    font-weight: 400;
+    padding: 6px 4px;
+    letter-spacing: 0.04em;
+    cursor: default;
+  }
+
+  table.standings th.stat-gap {
+    width: 20px;
+    padding: 0;
+    background: var(--pitch-dark);
+  }
+
+  table.standings td.stat-gap {
+    width: 20px;
+    padding: 0;
+    background: var(--chalk);
+  }
+
+  td.stat-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 10px 6px;
+  }
+
+  td.stat-cell.stat-decisive {
+    color: var(--crimson);
+    background: rgba(212,175,55,0.16);
+  }
+
+  table.standings tbody td {
+    padding: 10px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+
+  table.standings tbody td.center { text-align: center; }
+
+  table.standings tbody tr.pos-1 td.player-name { color: var(--crimson); font-weight: 800; }
+
+  td.pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: var(--muted);
+    width: 34px;
+  }
+
+  tr.pos-1 td.pos {
+    color: var(--gold);
+    background: #1a1a1a10;
+  }
+
+  td.player-name { font-weight: 700; }
+
+  td.pts {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--navy);
+  }
+
+  .form-row {
+    display: flex;
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
+
+  .badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .badge.W { background: #2D6A4F; }
+  .badge.D { background: #A8A29A; }
+  .badge.L { background: var(--crimson); }
+
+  .badge.badge-tb {
+    box-shadow: 0 0 0 2px var(--gold);
+  }
+
+  .hole-tick-row {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .hole-tick-row span {
+    width: 20px;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: rgba(247,247,242,0.5);
+  }
+
+  /* ---------- TIEBREAKER PANEL ---------- */
+  .tiebreak-panel {
+    margin-top: 16px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: white;
+  }
+
+  .tiebreak-panel-header {
+    background: var(--navy);
+    color: var(--chalk);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tiebreak-panel-header .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  .tiebreak-group {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tiebreak-group:last-child { border-bottom: none; }
+  .tiebreak-group:nth-child(even) { background: #FAFAF7; }
+
+  .tiebreak-group-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--crimson);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .tiebreak-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 3px 0;
+    flex-wrap: wrap;
+  }
+
+  .tiebreak-row .name { font-weight: 600; }
+  .tiebreak-row .detail {
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+
+  .empty-standings {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  footer {
+    background: linear-gradient(180deg, var(--pitch-mid) 0%, var(--pitch-dark) 100%);
+    border-top: 6px solid var(--navy);
+    text-align: center;
+    padding: 26px 24px;
+  }
+
+  .footer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer-label::before,
+  .footer-label::after {
+    content: "";
+    width: 22px;
+    height: 2px;
+    background: var(--gold);
+    display: inline-block;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 40px 16px 32px; }
+    main { padding: 28px 16px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Newton Comm Monday Men's League</div>
+    <h1>World Cup<br>Challenge</h1>
+    <p class="subhead">It's you against the course in nine "matches" to beat net par. Earn three points for a win (net birdie or better) or one point for a draw (net par). Bogey or worse, well, that's a loss which earns zero points.</p>
+    <div class="scoreline">
+      <div class="chip">Win = <b>3 pts</b></div>
+      <div class="chip">Draw = <b>1 pt</b></div>
+      <div class="chip">Loss = <b>0 pts</b></div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="section-title"><span class="num">01</span> Match Sheet</div>
+  <p class="section-desc">Enter strokes allowed and gross score for each player.</p>
+
+  <div class="table-scroll">
+    <table class="entry" id="entryTable">
+      <thead>
+        <tr class="hole-row">
+          <th class="player-head" rowspan="2">Player</th>
+          <!-- hole headers injected by JS -->
+          <!-- points header (rowspan 2) injected by JS -->
+        </tr>
+        <tr class="par-row">
+          <!-- par headers injected by JS -->
+        </tr>
+      </thead>
+      <tbody id="entryBody">
+        <!-- rows injected by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="controls">
+    <button class="btn-primary" onclick="calculateStandings()">Calculate Standings</button>
+    <button class="btn-secondary" onclick="resetAll()">Reset All Scores</button>
+  </div>
+
+  <div class="section-title"><span class="num">02</span> Group Table</div>
+  <p class="section-desc" id="standingsDesc">Sorted by points. Ties are broken by most holes won, then most holes drawn (Penalty Shootout). Still tied? Sudden Death applies the same test backward from hole 9.</p>
+
+  <div class="standings-wrap">
+    <table class="standings" id="standingsTable">
+      <thead>
+        <tr>
+          <th style="width:34px;" rowspan="2">Pos</th>
+          <th style="width:140px;" rowspan="2">Player</th>
+          <th class="center" rowspan="2">
+            <div>Holes</div>
+            <div class="hole-tick-row" id="holeTickRow"></div>
+          </th>
+          <th class="center" colspan="2" style="width:76px;">Shootout</th>
+          <th class="stat-gap" rowspan="2"></th>
+          <th class="center" colspan="2" style="width:76px;">Sudden Death</th>
+          <th class="center" style="width:52px;" rowspan="2">Pts</th>
+        </tr>
+        <tr class="sub-row">
+          <th class="center" style="width:38px;" title="Wins across all 9 holes — Penalty Shootout, round 1">W</th>
+          <th class="center" style="width:38px;" title="Draws across all 9 holes — Penalty Shootout, round 2">D</th>
+          <th class="center" style="width:38px;" title="Wins in whichever Sudden Death window decided this player's tie (Hole 9 if never needed)">W</th>
+          <th class="center" style="width:38px;" title="Draws in whichever Sudden Death window decided this player's tie (Hole 9 if never needed)">D</th>
+        </tr>
+      </thead>
+      <tbody id="standingsBody">
+        <tr><td colspan="9" class="empty-standings">Enter scores above and click "Calculate Standings" to build the table.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tiebreak-panel" id="tiebreakPanel" style="display:none;">
+    <div class="tiebreak-panel-header"><span class="dot"></span>Tiebreaker Breakdown</div>
+    <div id="tiebreakBody"></div>
+  </div>
+</main>
+
+<footer><span class="footer-label">World Cup Challenge &middot; Newton Comm Monday Men's League</span></footer>
+
+<script>
+const PARS = [4, 5, 3, 3, 5, 4, 3, 5, 3];
+// Ordered by tee time (per the posted tee sheet), then last name within each tee time.
+// Only the 26 contest participants are listed — non-participants have been excluded from their groups.
+const PLAYERS = [
+  "Steven Cruz","Brian Zinn",                                  // 4:50
+  "Gene Mercuri","Hugh Quinn","Andrew Walker",                 // 5:00
+  "Dan Elman","Jeff Kenney","Carlton Quinn",                   // 5:10
+  "Bob Fitzgerald","Jason Gerdom","Austin Isaacson","Steve Menges", // 5:20
+  "Dan Cuddy","Patrick Healy","Jim Madden","Darryl Quinn",     // 5:30
+  "Anthony LaNeve","Christof Marré","Dennis McNicholl","Jonah Patel", // 5:40
+  "Brandon Bogrette","David Hodge",                            // 5:50
+  "David Boardman","Joey Desimone","Trent Gutstein","Logan Slattery" // 6:00
+];
+
+function buildTable() {
+  const holeRow = document.querySelector('tr.hole-row');
+  const parRow = document.querySelector('tr.par-row');
+  PARS.forEach((par, i) => {
+    const th = document.createElement('th');
+    th.textContent = i + 1;
+    holeRow.appendChild(th);
+
+    const pth = document.createElement('th');
+    pth.textContent = 'Par ' + par;
+    parRow.appendChild(pth);
+  });
+
+  const pointsTh = document.createElement('th');
+  pointsTh.className = 'total-head';
+  pointsTh.rowSpan = 2;
+  pointsTh.textContent = 'Points';
+  holeRow.appendChild(pointsTh);
+
+  const body = document.getElementById('entryBody');
+  let tabBase = 1;
+
+  PLAYERS.forEach((name, pIdx) => {
+    const tr = document.createElement('tr');
+    tr.dataset.player = pIdx;
+
+    const nameTd = document.createElement('td');
+    nameTd.className = 'player-cell';
+    nameTd.textContent = name;
+    tr.appendChild(nameTd);
+
+    PARS.forEach((par, hIdx) => {
+      const td = document.createElement('td');
+      td.innerHTML = `
+        <div class="hole-inputs">
+          <input type="number" class="strokes" data-hole="${hIdx}" placeholder="0" value="0" title="Strokes allowed" tabindex="${tabBase + hIdx}">
+          <input type="number" class="gross" data-hole="${hIdx}" placeholder="—" title="Gross score" tabindex="${tabBase + PARS.length + hIdx}">
+          <div class="point-box pending" data-hole="${hIdx}">–</div>
+        </div>`;
+      tr.appendChild(td);
+    });
+    tabBase += PARS.length * 2;
+
+    const totalTd = document.createElement('td');
+    totalTd.className = 'total-cell';
+    totalTd.textContent = '–';
+    totalTd.dataset.role = 'total';
+    tr.appendChild(totalTd);
+
+    body.appendChild(tr);
+  });
+
+  body.addEventListener('input', (e) => {
+    const target = e.target;
+    if (!target.classList.contains('strokes') && !target.classList.contains('gross')) return;
+    const row = target.closest('tr');
+    const hole = target.dataset.hole;
+    updatePointBox(row, hole);
+  });
+
+  const holeTickRow = document.getElementById('holeTickRow');
+  PARS.forEach((par, i) => {
+    const span = document.createElement('span');
+    span.textContent = i + 1;
+    holeTickRow.appendChild(span);
+  });
+}
+
+function updatePointBox(row, hole) {
+  const par = PARS[hole];
+  const strokesInput = row.querySelector(`input.strokes[data-hole="${hole}"]`);
+  const grossInput = row.querySelector(`input.gross[data-hole="${hole}"]`);
+  const box = row.querySelector(`.point-box[data-hole="${hole}"]`);
+
+  const grossVal = grossInput.value;
+  if (grossVal === '') {
+    box.className = 'point-box pending';
+    box.textContent = '–';
+    return;
+  }
+
+  const strokes = parseFloat(strokesInput.value) || 0;
+  const gross = parseFloat(grossVal);
+  const diff = (gross - strokes) - par;
+
+  if (diff <= -1) {
+    box.className = 'point-box win';
+    box.textContent = '3';
+  } else if (diff === 0) {
+    box.className = 'point-box draw';
+    box.textContent = '1';
+  } else {
+    box.className = 'point-box loss';
+    box.textContent = '0';
+  }
+}
+
+function calculateStandings() {
+  const rows = document.querySelectorAll('#entryBody tr');
+  const results = [];
+
+  rows.forEach(row => {
+    const playerName = row.querySelector('.player-cell').textContent;
+    const strokesInputs = row.querySelectorAll('input.strokes');
+    const grossInputs = row.querySelectorAll('input.gross');
+
+    let points = 0;
+    let anyEntered = false;
+    const results9 = [];
+
+    PARS.forEach((par, i) => {
+      const strokes = parseFloat(strokesInputs[i].value) || 0;
+      const grossVal = grossInputs[i].value;
+      if (grossVal === '') {
+        results9.push(null);
+        return;
+      }
+      anyEntered = true;
+      const gross = parseFloat(grossVal);
+      const diff = (gross - strokes) - par;
+      if (diff <= -1) { points += 3; results9.push('W'); }
+      else if (diff === 0) { points += 1; results9.push('D'); }
+      else { results9.push('L'); }
+    });
+
+    row.querySelector('[data-role="total"]').textContent = anyEntered ? points : '–';
+
+    results.push({ playerName, points, results9, anyEntered });
+  });
+
+  const withScores = results.filter(r => r.anyEntered);
+
+  withScores.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+
+    // Penalty Shootout: most holes won (3 pts), then most holes drawn (1 pt), across all 9 holes.
+    const aW = countResults(a.results9, 'W'), bW = countResults(b.results9, 'W');
+    if (aW !== bW) return bW - aW;
+    const aD = countResults(a.results9, 'D'), bD = countResults(b.results9, 'D');
+    if (aD !== bD) return bD - aD;
+
+    // Sudden Death: same test, backward from hole 9, widening the window one hole at a time.
+    for (let start = PARS.length - 1; start >= 0; start--) {
+      const aWs = countResults(a.results9, 'W', start), bWs = countResults(b.results9, 'W', start);
+      if (aWs !== bWs) return bWs - aWs;
+      const aDs = countResults(a.results9, 'D', start), bDs = countResults(b.results9, 'D', start);
+      if (aDs !== bDs) return bDs - aDs;
+    }
+    return 0;
+  });
+
+  withScores.forEach(r => { r._tiebreak = null; });
+  let i = 0;
+  while (i < withScores.length) {
+    let j = i + 1;
+    while (j < withScores.length && withScores[j].points === withScores[i].points) j++;
+    if (j - i > 1) annotateShootout(withScores.slice(i, j));
+    i = j;
+  }
+
+  renderStandings(withScores);
+}
+
+function countResults(results9, type, start = 0) {
+  let count = 0;
+  for (let i = start; i < results9.length; i++) if (results9[i] === type) count++;
+  return count;
+}
+
+// Mirrors the sort comparator above so the standings table can explain, per tied
+// player, which round and which count (wins or draws) separated them from the rest.
+function annotateShootout(group) {
+  annotateByCount(group, 'W', 0, 'shootout');
+}
+
+function annotateByCount(group, type, windowStart, stage) {
+  if (group.length <= 1) return;
+
+  const buckets = new Map();
+  group.forEach(p => {
+    const count = countResults(p.results9, type, windowStart);
+    if (!buckets.has(count)) buckets.set(count, []);
+    buckets.get(count).push(p);
+  });
+
+  if (buckets.size > 1) {
+    buckets.forEach((members, count) => {
+      // Overwrite (not just set-once): a player who stays tied here gets
+      // relabeled by whichever deeper round actually settles their spot.
+      members.forEach(p => { p._tiebreak = { stage, type, windowStart, value: count }; });
+      if (members.length > 1) advance(members, type, windowStart, stage);
+    });
+  } else {
+    advance(group, type, windowStart, stage);
+  }
+}
+
+function advance(group, type, windowStart, stage) {
+  if (type === 'W') {
+    annotateByCount(group, 'D', windowStart, stage);
+  } else if (stage === 'shootout') {
+    annotateByCount(group, 'W', PARS.length - 1, 'suddendeath');
+  } else if (windowStart > 0) {
+    annotateByCount(group, 'W', windowStart - 1, 'suddendeath');
+  }
+  // else: fully tied through every round — leave remaining players unflagged.
+}
+
+function windowLabel(windowStart) {
+  const from = windowStart + 1;
+  return from === PARS.length ? `Hole ${PARS.length}` : `Holes ${from}–${PARS.length}`;
+}
+
+function tiebreakLabel(tb) {
+  if (!tb) return '';
+  const holeWord = tb.value === 1 ? 'hole' : 'holes';
+  const noun = tb.type === 'W' ? `${holeWord} at 3 pts` : `${holeWord} at 1 pt`;
+  return tb.stage === 'shootout'
+    ? `Penalty Shootout — ${tb.value} ${noun}`
+    : `Sudden Death (${windowLabel(tb.windowStart)}) — ${tb.value} ${noun}`;
+}
+
+function renderStandings(list) {
+  const body = document.getElementById('standingsBody');
+  body.innerHTML = '';
+
+  if (list.length === 0) {
+    body.innerHTML = '<tr><td colspan="9" class="empty-standings">Enter scores above and click "Calculate Standings" to build the table.</td></tr>';
+    renderTiebreakPanel([]);
+    return;
+  }
+
+  list.forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = idx === 0 ? 'pos-1' : '';
+    const tb = r._tiebreak;
+
+    const formHtml = r.results9.map((res, hIdx) => {
+      if (res === null) return '<span class="badge" style="background:#E5E3DA;color:#999;">–</span>';
+      const isDecisive = tb && res === tb.type && hIdx >= tb.windowStart;
+      const cls = 'badge ' + res + (isDecisive ? ' badge-tb' : '');
+      const title = isDecisive ? ` title="${tiebreakLabel(tb)}"` : '';
+      return `<span class="${cls}"${title}>${res}</span>`;
+    }).join('');
+
+    // Shootout counts use all 9 holes. Sudden Death counts use whichever window actually
+    // decided this player's tie (matching the Tiebreaker Breakdown panel below); if Sudden
+    // Death was never reached, fall back to its opening window (Hole 9).
+    const psWins = countResults(r.results9, 'W');
+    const psDraws = countResults(r.results9, 'D');
+    const sdWindowStart = (tb && tb.stage === 'suddendeath') ? tb.windowStart : PARS.length - 1;
+    const sdWins = countResults(r.results9, 'W', sdWindowStart);
+    const sdDraws = countResults(r.results9, 'D', sdWindowStart);
+    const isDecisiveStat = (stage, type) => tb && tb.stage === stage && tb.type === type;
+
+    tr.innerHTML = `
+      <td class="pos">${idx + 1}</td>
+      <td class="player-name">${r.playerName}</td>
+      <td class="center"><div class="form-row" style="justify-content:center;">${formHtml}</div></td>
+      <td class="center stat-cell${isDecisiveStat('shootout', 'W') ? ' stat-decisive' : ''}">${psWins}</td>
+      <td class="center stat-cell${isDecisiveStat('shootout', 'D') ? ' stat-decisive' : ''}">${psDraws}</td>
+      <td class="stat-gap"></td>
+      <td class="center stat-cell${isDecisiveStat('suddendeath', 'W') ? ' stat-decisive' : ''}">${sdWins}</td>
+      <td class="center stat-cell${isDecisiveStat('suddendeath', 'D') ? ' stat-decisive' : ''}">${sdDraws}</td>
+      <td class="center pts">${r.points}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  renderTiebreakPanel(list.filter(r => r._tiebreak));
+}
+
+function renderTiebreakPanel(tiedPlayers) {
+  const panel = document.getElementById('tiebreakPanel');
+  const bodyEl = document.getElementById('tiebreakBody');
+
+  if (!tiedPlayers.length) {
+    panel.style.display = 'none';
+    bodyEl.innerHTML = '';
+    return;
+  }
+
+  const groups = new Map();
+  tiedPlayers.forEach(r => {
+    if (!groups.has(r.points)) groups.set(r.points, []);
+    groups.get(r.points).push(r);
+  });
+
+  const pointsDesc = Array.from(groups.keys()).sort((a, b) => b - a);
+
+  bodyEl.innerHTML = pointsDesc.map(pts => {
+    const members = groups.get(pts);
+    const rows = members.map(r => `
+      <div class="tiebreak-row">
+        <span class="name">${r.playerName}</span>
+        <span class="detail">${tiebreakLabel(r._tiebreak)}</span>
+      </div>`).join('');
+    return `
+      <div class="tiebreak-group">
+        <div class="tiebreak-group-title">Tie at ${pts} pts &middot; ${members.length} players</div>
+        ${rows}
+      </div>`;
+  }).join('');
+
+  panel.style.display = 'block';
+}
+
+function resetAll() {
+  document.querySelectorAll('input.strokes').forEach(i => i.value = '0');
+  document.querySelectorAll('input.gross').forEach(i => i.value = '');
+  document.querySelectorAll('[data-role="total"]').forEach(td => td.textContent = '–');
+  document.querySelectorAll('.point-box').forEach(box => {
+    box.className = 'point-box pending';
+    box.textContent = '–';
+  });
+  document.getElementById('standingsBody').innerHTML =
+    '<tr><td colspan="9" class="empty-standings">Enter scores above and click "Calculate Standings" to build the table.</td></tr>';
+  document.getElementById('tiebreakPanel').style.display = 'none';
+  document.getElementById('tiebreakBody').innerHTML = '';
+}
+
+buildTable();
+</script>
+
+</body>
+</html>
