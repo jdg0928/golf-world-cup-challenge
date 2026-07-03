@@ -259,6 +259,12 @@
   .hole-inputs input.strokes { color: var(--muted); }
   .hole-inputs input.gross { color: var(--ink); font-weight: 700; }
 
+  .hole-inputs input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #F2F1EC;
+  }
+
   .hole-inputs input::-webkit-outer-spin-button,
   .hole-inputs input::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -324,6 +330,13 @@
 
   button:active { transform: translateY(1px); }
 
+  button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
   .btn-primary {
     background: var(--crimson);
     color: white;
@@ -337,6 +350,82 @@
     border: 1.5px solid var(--navy);
   }
   .btn-secondary:hover { background: rgba(20,40,80,0.06); }
+
+  .lock-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .lock-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 1.5px solid var(--navy);
+    color: var(--navy);
+    font-size: 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lock-btn:hover { background: rgba(20,40,80,0.06); }
+  .lock-btn.unlocked {
+    border-color: #2D6A4F;
+    color: #2D6A4F;
+  }
+
+  .pin-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 200px;
+    z-index: 10;
+  }
+  .pin-popover.hidden { display: none; }
+
+  .pin-popover label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pin-popover input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 0.3em;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+
+  .pin-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .pin-actions button {
+    flex: 1;
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .pin-error {
+    display: none;
+    color: var(--crimson);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .pin-error.show { display: block; }
 
   /* ---------- STANDINGS ---------- */
   .standings-wrap {
@@ -615,7 +704,19 @@
 
   <div class="controls">
     <button class="btn-primary" onclick="calculateStandings()">Calculate Standings</button>
-    <button class="btn-secondary" onclick="resetAll()">Reset All Scores</button>
+    <button class="btn-secondary" id="resetBtn" onclick="resetAll()">Reset All Scores</button>
+    <div class="lock-wrap">
+      <button class="lock-btn" id="lockBtn" onclick="toggleLock()" title="Unlock editing" aria-label="Unlock editing">🔒</button>
+      <div class="pin-popover hidden" id="pinPopover">
+        <label for="pinInput">Enter PIN to unlock</label>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="pinInput" onkeydown="if(event.key==='Enter')submitPin(); if(event.key==='Escape')closePinPopover();">
+        <div class="pin-error" id="pinError">Incorrect PIN</div>
+        <div class="pin-actions">
+          <button class="btn-secondary" onclick="closePinPopover()">Cancel</button>
+          <button class="btn-primary" onclick="submitPin()">Unlock</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="section-title"><span class="num">02</span> Group Table</div>
@@ -993,7 +1094,68 @@ function resetAll() {
   document.getElementById('tiebreakBody').innerHTML = '';
 }
 
+const EDIT_PIN = '239010';
+const UNLOCK_KEY = 'worldCupUnlocked';
+
+function isUnlocked() {
+  return sessionStorage.getItem(UNLOCK_KEY) === '1';
+}
+
+function updateLockUI() {
+  const unlocked = isUnlocked();
+  document.querySelectorAll('input.strokes, input.gross').forEach(i => { i.disabled = !unlocked; });
+  document.getElementById('resetBtn').disabled = !unlocked;
+
+  const btn = document.getElementById('lockBtn');
+  btn.textContent = unlocked ? '🔓' : '🔒';
+  btn.title = unlocked ? 'Lock editing' : 'Unlock editing';
+  btn.classList.toggle('unlocked', unlocked);
+}
+
+function toggleLock() {
+  if (isUnlocked()) {
+    sessionStorage.removeItem(UNLOCK_KEY);
+    updateLockUI();
+  } else {
+    openPinPopover();
+  }
+}
+
+function openPinPopover() {
+  const popover = document.getElementById('pinPopover');
+  popover.classList.remove('hidden');
+  document.getElementById('pinError').classList.remove('show');
+  const input = document.getElementById('pinInput');
+  input.value = '';
+  input.focus();
+}
+
+function closePinPopover() {
+  document.getElementById('pinPopover').classList.add('hidden');
+}
+
+function submitPin() {
+  const input = document.getElementById('pinInput');
+  if (input.value === EDIT_PIN) {
+    sessionStorage.setItem(UNLOCK_KEY, '1');
+    closePinPopover();
+    updateLockUI();
+  } else {
+    document.getElementById('pinError').classList.add('show');
+    input.value = '';
+    input.focus();
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.lock-wrap');
+  if (!document.getElementById('pinPopover').classList.contains('hidden') && !wrap.contains(e.target)) {
+    closePinPopover();
+  }
+});
+
 buildTable();
+updateLockUI();
 </script>
 
 </body>
