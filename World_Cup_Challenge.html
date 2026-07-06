@@ -938,6 +938,9 @@ function calculateStandings() {
   }
 
   renderStandings(withScores);
+
+  // Publish the latest sheet so players viewing the page see current results too.
+  if (isUnlocked()) publishScores();
 }
 
 function countResults(results9, type, start = 0) {
@@ -1096,9 +1099,11 @@ function resetAll() {
     '<tr><td colspan="9" class="empty-standings">Enter scores above and click "Calculate Standings" to build the table.</td></tr>';
   document.getElementById('tiebreakPanel').style.display = 'none';
   document.getElementById('tiebreakBody').innerHTML = '';
+
+  if (isUnlocked()) publishScores();
 }
 
-function saveToFile() {
+function collectScoresPayload() {
   const players = PLAYERS.map((name, pIdx) => {
     const row = document.querySelectorAll('#entryBody tr')[pIdx];
     return {
@@ -1107,8 +1112,11 @@ function saveToFile() {
       gross: Array.from(row.querySelectorAll('input.gross')).map(i => i.value)
     };
   });
+  return { version: 1, savedAt: new Date().toISOString(), players };
+}
 
-  const data = { version: 1, savedAt: new Date().toISOString(), players };
+function saveToFile() {
+  const data = collectScoresPayload();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1116,6 +1124,30 @@ function saveToFile() {
   a.download = 'world-cup-challenge-scores.json';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// Shared by "Load from File" and the on-page-load fetch of the published sheet.
+function applyScoresData(data) {
+  const byName = new Map((data.players || []).map(p => [p.name, p]));
+  document.querySelectorAll('#entryBody tr').forEach((row, pIdx) => {
+    const saved = byName.get(PLAYERS[pIdx]);
+    if (!saved) return;
+
+    const strokesInputs = row.querySelectorAll('input.strokes');
+    const grossInputs = row.querySelectorAll('input.gross');
+    (saved.strokes || []).forEach((v, hIdx) => {
+      if (strokesInputs[hIdx]) {
+        strokesInputs[hIdx].value = v;
+        strokesInputs[hIdx].dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+    (saved.gross || []).forEach((v, hIdx) => {
+      if (grossInputs[hIdx]) {
+        grossInputs[hIdx].value = v;
+        grossInputs[hIdx].dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  });
 }
 
 function loadFromFile(event) {
@@ -1131,32 +1163,38 @@ function loadFromFile(event) {
       alert('That file is not valid JSON.');
       return;
     }
-
-    const byName = new Map((data.players || []).map(p => [p.name, p]));
-    document.querySelectorAll('#entryBody tr').forEach((row, pIdx) => {
-      const saved = byName.get(PLAYERS[pIdx]);
-      if (!saved) return;
-
-      const strokesInputs = row.querySelectorAll('input.strokes');
-      const grossInputs = row.querySelectorAll('input.gross');
-      (saved.strokes || []).forEach((v, hIdx) => {
-        if (strokesInputs[hIdx]) {
-          strokesInputs[hIdx].value = v;
-          strokesInputs[hIdx].dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-      (saved.gross || []).forEach((v, hIdx) => {
-        if (grossInputs[hIdx]) {
-          grossInputs[hIdx].value = v;
-          grossInputs[hIdx].dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-    });
-
+    applyScoresData(data);
     calculateStandings();
     event.target.value = '';
   };
   reader.readAsText(file);
+}
+
+// Pushes the current sheet to the shared backend so players see it without unlocking.
+async function publishScores() {
+  const data = collectScoresPayload();
+  try {
+    await fetch('/api/scores', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pin: EDIT_PIN, ...data })
+    });
+  } catch (e) {
+    // Offline or the API is unavailable - the local view still works either way.
+  }
+}
+
+// Runs on every page load so anyone opening the page sees the latest published results.
+async function loadPublishedScores() {
+  try {
+    const res = await fetch('/api/scores');
+    if (!res.ok) return;
+    const data = await res.json();
+    applyScoresData(data);
+    calculateStandings();
+  } catch (e) {
+    // Nothing published yet, or offline - the sheet just stays empty.
+  }
 }
 
 const EDIT_PIN = '239010';
@@ -1222,6 +1260,7 @@ document.addEventListener('click', (e) => {
 
 buildTable();
 updateLockUI();
+loadPublishedScores();
 </script>
 
 </body>

@@ -1,7 +1,15 @@
 {
   "name": "golf-world-cup-challenge",
   "compatibility_date": "2026-07-03",
+  "main": "./worker.js",
   "assets": {
-    "directory": "."
-  }
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SCORES",
+      "id": "274dbea1b59b4200aaf6e0fcaeefe899"
+    }
+  ]
 }

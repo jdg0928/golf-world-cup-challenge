@@ -5,12 +5,12 @@ ship it, so a similar contest page can reuse the same pattern.
 
 ## What it is
 
-A single static HTML page (`World_Cup_Challenge.html`) for the Newton Comm
-Monday Men's League's "World Cup Challenge" — a 9-hole group-stage golf
-contest. No backend, no database: everything runs client-side in the
-browser. Scores don't auto-persist across reloads, but can be exported to
-and re-imported from a JSON file (see below) for cross-session/cross-device
-persistence.
+A static HTML page (`World_Cup_Challenge.html`) for the Newton Comm Monday
+Men's League's "World Cup Challenge" — a 9-hole group-stage golf contest.
+The UI is entirely client-side, but it's backed by a small Worker
+(`worker.js`) and a Cloudflare KV namespace so that whatever the scorer
+enters is visible to anyone who opens the page — see "Shared results
+backend" below.
 
 ## Scoring rules
 
@@ -76,20 +76,53 @@ source and is visible via view-source/devtools. It stops casual tampering,
 not a determined person. The PIN itself is saved in the password manager,
 not reprinted here.
 
-## Save/Load (cross-session persistence)
+## Shared results backend
 
-Since there's no backend, "Save to File" serializes every player's
-strokes/gross inputs to JSON (matched by player **name**, so it survives
-future roster reordering) and triggers a browser download of
-`world-cup-challenge-scores.json`. "Load from File" reads a previously
-saved JSON file back in and repopulates the sheet, then recalculates
-standings.
+So players can see standings without needing the PIN (and without the
+scorer needing to send anyone a file), the site runs as a small Worker with
+a Cloudflare KV namespace behind it, instead of pure static assets:
 
-For persistence across devices/sessions, save that JSON file into a
-cloud-synced folder (iCloud Drive, Dropbox, etc.) — either point your
-browser's downloads folder there, or just move the file after each save.
-Load respects the same PIN lock as Reset (populating scores is effectively
-an edit), but Save works anytime since it's read-only.
+- `wrangler.jsonc` gained a `main: "./worker.js"` entry point, an
+  `assets.binding: "ASSETS"` (so the Worker script can fall back to serving
+  the static site for any path that isn't its own API), and a
+  `kv_namespaces` binding (`SCORES`) pointing at a KV namespace created
+  ahead of time in the dashboard (**Storage & databases → KV → Create
+  instance**) — this can't be provisioned from a config file alone, it has
+  to exist first.
+- `worker.js` handles two routes: `GET /api/scores` (public, returns
+  whatever's currently stored — this is what makes results visible to
+  players) and `POST /api/scores` (requires the same PIN as the client
+  lock, checked server-side, and overwrites the stored JSON on success).
+  Everything else falls through to `env.ASSETS.fetch(request)`, i.e. the
+  normal static site — though in practice static-asset requests are served
+  before the Worker script even runs, per Workers' default routing
+  behavior, so this fallback mostly matters for stray paths.
+- On the client: `calculateStandings()` and `resetAll()` both publish to
+  `/api/scores` automatically whenever the sheet is unlocked (so the
+  scorer's normal workflow — enter scores, hit Calculate — is also what
+  keeps the shared copy current). Every page load fetches `/api/scores`
+  and populates the sheet from it, regardless of lock state, so a locked
+  (i.e. any normal player's) view still shows current results.
+- **Security note:** the PIN is checked server-side now, which is a real
+  improvement over the old client-only check — but the PIN is still the
+  same value embedded in the page's client-side JS (needed for the unlock
+  UI), so someone who reads the page source and calls the API directly
+  could still write bad data. This is proportionate for a friendly league
+  scoring tool, not bank-grade auth. If you build the next contest's page
+  and want stronger separation, the write-PIN would need to never be sent
+  to the client at all, which means a different (non-UI-gated) way for the
+  scorer to authenticate — more complexity than this project needed.
+
+## Save/Load (manual backup)
+
+"Save to File" serializes every player's strokes/gross inputs to JSON
+(matched by player **name**, so it survives future roster reordering) and
+triggers a browser download of `world-cup-challenge-scores.json`. "Load
+from File" reads a previously saved JSON file back in, repopulates the
+sheet, recalculates standings, and — since it's unlocked-only — publishes
+the result to the shared backend too. This is a manual, offline-friendly
+backup/export path; the shared backend above is what keeps everyone in
+sync day to day.
 
 ## Favicon
 
