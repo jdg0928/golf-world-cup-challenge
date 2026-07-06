@@ -706,6 +706,9 @@
   <div class="controls">
     <button class="btn-primary" onclick="calculateStandings()">Calculate Standings</button>
     <button class="btn-secondary" id="resetBtn" onclick="resetAll()">Reset All Scores</button>
+    <button class="btn-secondary" onclick="saveToFile()">Save to File</button>
+    <button class="btn-secondary" id="loadBtn" onclick="document.getElementById('loadFileInput').click()">Load from File</button>
+    <input type="file" id="loadFileInput" accept="application/json" style="display:none" onchange="loadFromFile(event)">
     <div class="lock-wrap">
       <button class="lock-btn" id="lockBtn" onclick="toggleLock()" title="Unlock editing" aria-label="Unlock editing">🔒</button>
       <div class="pin-popover hidden" id="pinPopover">
@@ -1095,6 +1098,67 @@ function resetAll() {
   document.getElementById('tiebreakBody').innerHTML = '';
 }
 
+function saveToFile() {
+  const players = PLAYERS.map((name, pIdx) => {
+    const row = document.querySelectorAll('#entryBody tr')[pIdx];
+    return {
+      name,
+      strokes: Array.from(row.querySelectorAll('input.strokes')).map(i => i.value),
+      gross: Array.from(row.querySelectorAll('input.gross')).map(i => i.value)
+    };
+  });
+
+  const data = { version: 1, savedAt: new Date().toISOString(), players };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'world-cup-challenge-scores.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadFromFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try {
+      data = JSON.parse(reader.result);
+    } catch (e) {
+      alert('That file is not valid JSON.');
+      return;
+    }
+
+    const byName = new Map((data.players || []).map(p => [p.name, p]));
+    document.querySelectorAll('#entryBody tr').forEach((row, pIdx) => {
+      const saved = byName.get(PLAYERS[pIdx]);
+      if (!saved) return;
+
+      const strokesInputs = row.querySelectorAll('input.strokes');
+      const grossInputs = row.querySelectorAll('input.gross');
+      (saved.strokes || []).forEach((v, hIdx) => {
+        if (strokesInputs[hIdx]) {
+          strokesInputs[hIdx].value = v;
+          strokesInputs[hIdx].dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      (saved.gross || []).forEach((v, hIdx) => {
+        if (grossInputs[hIdx]) {
+          grossInputs[hIdx].value = v;
+          grossInputs[hIdx].dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+    });
+
+    calculateStandings();
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 const EDIT_PIN = '239010';
 const UNLOCK_KEY = 'worldCupUnlocked';
 
@@ -1106,6 +1170,7 @@ function updateLockUI() {
   const unlocked = isUnlocked();
   document.querySelectorAll('input.strokes, input.gross').forEach(i => { i.disabled = !unlocked; });
   document.getElementById('resetBtn').disabled = !unlocked;
+  document.getElementById('loadBtn').disabled = !unlocked;
 
   const btn = document.getElementById('lockBtn');
   btn.textContent = unlocked ? '🔓' : '🔒';
