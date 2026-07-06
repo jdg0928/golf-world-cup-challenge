@@ -57,8 +57,8 @@ Full writeup lives in `World_Cup_Challenge_Rules.md`.
    groups tied players by point total and states in plain language which
    round (Penalty Shootout or Sudden Death + hole range) and stat separated
    them.
-5. **Controls row** — Calculate Standings, Reset All Scores, Save to File,
-   Load from File, and a small lock icon (see below).
+5. **Controls row** — Calculate Standings, Reset All Scores, and a small
+   lock icon (see below).
 6. **Footer** — visually mirrors the hero (same gradient, border, and gold
    dash-label styling) with the contest + league name.
 
@@ -97,6 +97,8 @@ a Cloudflare KV namespace behind it, instead of pure static assets:
   normal static site — though in practice static-asset requests are served
   before the Worker script even runs, per Workers' default routing
   behavior, so this fallback mostly matters for stray paths.
+- The published payload matches each player's strokes/gross values by
+  **name**, not row position, so it survives future roster reordering.
 - On the client: `calculateStandings()` and `resetAll()` both publish to
   `/api/scores` automatically whenever the sheet is unlocked (so the
   scorer's normal workflow — enter scores, hit Calculate — is also what
@@ -112,17 +114,6 @@ a Cloudflare KV namespace behind it, instead of pure static assets:
   and want stronger separation, the write-PIN would need to never be sent
   to the client at all, which means a different (non-UI-gated) way for the
   scorer to authenticate — more complexity than this project needed.
-
-## Save/Load (manual backup)
-
-"Save to File" serializes every player's strokes/gross inputs to JSON
-(matched by player **name**, so it survives future roster reordering) and
-triggers a browser download of `world-cup-challenge-scores.json`. "Load
-from File" reads a previously saved JSON file back in, repopulates the
-sheet, recalculates standings, and — since it's unlocked-only — publishes
-the result to the shared backend too. This is a manual, offline-friendly
-backup/export path; the shared backend above is what keeps everyone in
-sync day to day.
 
 ## Favicon
 

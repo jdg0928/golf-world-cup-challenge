@@ -706,9 +706,6 @@
   <div class="controls">
     <button class="btn-primary" onclick="calculateStandings()">Calculate Standings</button>
     <button class="btn-secondary" id="resetBtn" onclick="resetAll()">Reset All Scores</button>
-    <button class="btn-secondary" onclick="saveToFile()">Save to File</button>
-    <button class="btn-secondary" id="loadBtn" onclick="document.getElementById('loadFileInput').click()">Load from File</button>
-    <input type="file" id="loadFileInput" accept="application/json" style="display:none" onchange="loadFromFile(event)">
     <div class="lock-wrap">
       <button class="lock-btn" id="lockBtn" onclick="toggleLock()" title="Unlock editing" aria-label="Unlock editing">🔒</button>
       <div class="pin-popover hidden" id="pinPopover">
@@ -1115,18 +1112,7 @@ function collectScoresPayload() {
   return { version: 1, savedAt: new Date().toISOString(), players };
 }
 
-function saveToFile() {
-  const data = collectScoresPayload();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'world-cup-challenge-scores.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-// Shared by "Load from File" and the on-page-load fetch of the published sheet.
+// Applies a { players: [...] } payload (from the shared backend) to the sheet.
 function applyScoresData(data) {
   const byName = new Map((data.players || []).map(p => [p.name, p]));
   document.querySelectorAll('#entryBody tr').forEach((row, pIdx) => {
@@ -1148,26 +1134,6 @@ function applyScoresData(data) {
       }
     });
   });
-}
-
-function loadFromFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    let data;
-    try {
-      data = JSON.parse(reader.result);
-    } catch (e) {
-      alert('That file is not valid JSON.');
-      return;
-    }
-    applyScoresData(data);
-    calculateStandings();
-    event.target.value = '';
-  };
-  reader.readAsText(file);
 }
 
 // Pushes the current sheet to the shared backend so players see it without unlocking.
@@ -1208,7 +1174,6 @@ function updateLockUI() {
   const unlocked = isUnlocked();
   document.querySelectorAll('input.strokes, input.gross').forEach(i => { i.disabled = !unlocked; });
   document.getElementById('resetBtn').disabled = !unlocked;
-  document.getElementById('loadBtn').disabled = !unlocked;
 
   const btn = document.getElementById('lockBtn');
   btn.textContent = unlocked ? '🔓' : '🔒';
